@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Demonstração — verificação acessível</title>
+<style>body{font:20px system-ui;margin:3rem;max-width:720px;color:#1d2939}button{padding:1rem;margin:.7rem 0;border:2px solid #253f7a;border-radius:5px;font-size:1rem}button:focus-visible{outline:4px solid orange}</style></head><body>
+<h1>Ambiente demonstrativo de acessibilidade</h1>
+<p>Esta página é um teste local, não um CAPTCHA real nem uma verificação de segurança.</p>
+<div class="captcha-demo" id="captcha-demonstrativo" aria-label="Verificação demonstrativa">
+<p>Exemplo de interface de verificação com recurso de acessibilidade.</p>
+<button type="button" aria-label="Ouvir instruções em áudio" id="audio">Ouvir instruções em áudio</button>
+<button type="button" aria-label="Abrir recursos de acessibilidade" id="access">Abrir recursos de acessibilidade</button>
+<p id="status" role="status"></p></div>
+<script>
+document.getElementById('audio').addEventListener('click',()=>{
+ const u=new SpeechSynthesisUtterance('Esta é uma demonstração de recurso de áudio. Você está em uma página de testes de acessibilidade.');u.lang='pt-BR'; speechSynthesis.speak(u);
+ document.getElementById('status').textContent='Recurso de áudio iniciado.';
+});
+document.getElementById('access').addEventListener('click',()=>{
+ document.getElementById('status').textContent='Recursos de acessibilidade demonstrativos disponíveis.';
+});
+</script></body></html>

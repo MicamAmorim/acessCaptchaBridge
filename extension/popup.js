@@ -9,6 +9,7 @@ let captureGranted = false;
 let remoteGranted = false;
 let currentOrigin = '';
 let serverOnline = false;
+let permissionUiInitialized = false;
 const CAPTURE_ORIGINS = ['<all_urls>'];
 const APPROVAL_KEY = 'codexSiteApprovals';
 
@@ -44,6 +45,13 @@ async function syncPermissions() {
   $('grantCodex').hidden = remoteGranted;
   $('grantCodex').disabled = !currentOrigin;
   $('revokeCodex').hidden = !remoteGranted;
+  const selected = available.find(m => `${m.provider}::${m.id}` === $('model').value);
+  if (!captureGranted || (selected?.provider === 'codex' && !remoteGranted)) {
+    $('permissions').open = true;
+  } else if (!permissionUiInitialized) {
+    $('permissions').open = false;
+  }
+  permissionUiInitialized = true;
   updateActions();
 }
 
@@ -191,6 +199,9 @@ async function init() {
     chrome.permissions.request({ origins: CAPTURE_ORIGINS })
       .then(async granted => {
         await syncPermissions();
+        if (granted && !($('model').value.startsWith('codex::') && !remoteGranted)) {
+          $('permissions').open = false;
+        }
         message(granted
           ? 'Acesso persistente autorizado. Nenhuma captura será feita automaticamente.'
           : 'Permissão recusada. Nenhuma imagem será capturada.', !granted);
@@ -212,6 +223,7 @@ async function init() {
     approvals[origin] = true;
     await chrome.storage.local.set({ [APPROVAL_KEY]: approvals });
     await syncPermissions();
+    $('permissions').open = false;
     message('Codex autorizado neste site. A análise só ocorre quando você solicitar.');
   }));
   $('revokeCodex').addEventListener('click', () => busy($('revokeCodex'), async () => {

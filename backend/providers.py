@@ -246,7 +246,8 @@ def codex_describe(image_b64: str, model: str, prompt: str, system_prompt: str) 
         )
         try:
             outcome = subprocess.run(
-                args, cwd=directory, input=instruction, text=True,
+                # Explicit UTF-8 bytes avoid the Windows default ANSI code page.
+                args, cwd=directory, input=instruction.encode('utf-8'),
                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
                 timeout=CODEX_TIMEOUT, check=False,
                 creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
@@ -256,12 +257,14 @@ def codex_describe(image_b64: str, model: str, prompt: str, system_prompt: str) 
         if outcome.returncode:
             # Keep raw CLI logs local: they can contain file paths or
             # user-specific data and should not be sent to the browser.
-            details = (outcome.stderr or '').strip()
+            details = (outcome.stderr or b'').decode('utf-8', errors='replace').strip()
             if details:
                 print('[AcessoPonte] Falha Codex CLI (stderr, últimos 1200 caracteres):\n'
                       + details[-1200:], flush=True)
             lower = details.lower()
-            if any(term in lower for term in ('unexpected argument', 'unrecognized option', 'unknown option')):
+            if 'not valid utf-8' in lower or 'invalid utf-8' in lower:
+                hint = 'Codex rejeitou a codificação UTF-8. Atualize o backend e tente novamente.'
+            elf any(term in lower for term in ('unexpected argument', 'unrecognized option', 'unknown option')):
                 hint = 'O Codex CLI rejeitou um argumento. Confira a versão e a sintaxe do comando.'
             elif any(term in lower for term in ('authentication', 'unauthorized', 'login required', '401', 'api key')):
                 hint = 'O Codex indicou falha de autenticação; execute codex login status no terminal.'

@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "AcessoPonte — Assistente de Acessibilidade",
-  "version": "0.2.0",
-  "description": "Tecnologia assistiva com detecção de modelos visuais instalados no Ollama e disponíveis no Codex CLI.",
-  "minimum_chrome_version": "114",
+  "version": "0.3.0",
+  "description": "Assistente de acessibilidade em painel lateral persistente, com autorização revogável e VLMs Codex/Ollama.",
+  "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "sidePanel"
   ],
   "host_permissions": [
     "http://127.0.0.1:8765/*"
@@ -16,12 +17,17 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "AcessoPonte"
+    "default_title": "Abrir ou fechar painel lateral AcessoPonte"
   },
   "icons": {
     "16": "icon128.png",
     "48": "icon128.png",
     "128": "icon128.png"
+  },
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "side_panel": {
+    "default_path": "popup.html"
   }
 }

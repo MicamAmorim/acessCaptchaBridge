@@ -2,6 +2,23 @@
 
 const SERVICE_URL = 'http://127.0.0.1:8765';
 
+// Keep the interface open when the user clicks back into the page.
+// No background scans or screenshots are started by this registration.
+async function enableSidePanel() {
+  if (chrome.sidePanel?.setPanelBehavior) {
+    try { await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }); }
+    catch (error) { console.warn('AcessoPonte: não foi possível habilitar o painel lateral:', error.message); }
+  }
+}
+chrome.runtime.onInstalled.addListener(enableSidePanel);
+chrome.runtime.onStartup.addListener(enableSidePanel);
+void enableSidePanel();
+
+async function requirePersistentAccess() {
+  const allowed = await chrome.permissions.contains({ origins: ['<all_urls>'] });
+  if (!allowed) throw new Error('Autorize uma vez o acesso persistente na seção Permissões do painel lateral.');
+}
+
 // Executed within each accessible page frame. Captures a restricted set of
 // accessibility-related controls; does not read forms, cookies or page bodies.
 function inspectPageFrame() {
@@ -94,6 +111,7 @@ async function activeTab() {
 }
 
 async function scan(tab) {
+  await requirePersistentAccess();
   let results;
   try {
     results = await chrome.scripting.executeScript({
@@ -114,7 +132,14 @@ async function scan(tab) {
 }
 
 async function captureForAnalysis(tab) {
+  await requirePersistentAccess();
   const diagnostics = await scan(tab);
+  // A side panel remains open while the user changes tabs. Never capture a
+  // different active tab than the one whose DOM was inspected.
+  const current = await activeTab();
+  if (current.id !== tab.id || current.url !== tab.url) {
+    throw new Error('A guia mudou durante a análise. Repita o comando na guia desejada.');
+  }
   const image = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'jpeg', quality: 68 });
   return { scan: diagnostics, image: image.split(',')[1] };
 }
@@ -134,6 +159,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message?.type === 'SCAN') return await scan(tab);
     if (message?.type === 'CAPTURE') return await captureForAnalysis(tab);
     if (message?.type === 'FOCUS') {
+      await requirePersistentAccess();
       const { frameId, index, kind, label } = message.control || {};
       if (!Number.isInteger(frameId) || !Number.isInteger(index) || typeof label !== 'string' || label.length > 140) {
         throw new Error('Controle inválido.');

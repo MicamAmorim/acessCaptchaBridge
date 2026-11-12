@@ -1,6 +1,6 @@
 :root { color-scheme: light; font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; }
 * { box-sizing: border-box; }
-body { min-width: 370px; max-width: 410px; width: 390px; margin: 0; background: #fbfcff; color: #111827; font-size: 15px; }
+body { width: 100%; min-width: 0; min-height: 100vh; margin: 0; background: #fbfcff; color: #111827; font-size: 16px; }
 header { background: #122238; color: white; padding: 14px 17px; }
 .brand { display: flex; align-items: center; gap: 10px; }
 h1 { font-size: 20px; margin: 0; }
@@ -31,3 +31,17 @@ select:focus-visible { outline: 3px solid #e28a13; outline-offset: 2px; }
 #modelStatus { margin: 5px 0; }
 #codexConsentRow { padding: 10px; border: 1px solid #b45309; border-radius: 6px; background: #fff9ec; }
 [hidden] { display: none !important; }
+
+/* Side panel: flexible width, comfortable focus targets and minimal narration. */
+#permissions { border: 1px solid #c6d4e4; background: #f4f8fd; padding: 12px; border-radius: 8px; margin: 14px 0; }
+#permissions h2 { margin-top: 0; }
+#captureStatus { font-size: 14px; font-weight: 600; }
+.remote-permission { margin-top: 12px; border-top: 1px solid #cbd5e1; padding-top: 10px; }
+button { min-height: 44px; }
+#revokeCapture, #revokeCodex { background: #fff; border-color: #9a3412; color: #7c2d12; }
+#server, #siteStatus, #message { overflow-wrap: anywhere; }
+@media (max-width: 320px) {
+  header { padding: 12px; }
+  main { padding: 12px; }
+  h1 { font-size: 18px; }
+}

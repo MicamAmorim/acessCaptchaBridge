@@ -23,7 +23,13 @@ Extensão Chrome/Edge Manifest V3 + ponte Python para análise visual de interfa
   - **Ollama** instalado, em execução em `127.0.0.1:11434`, com modelo de visão já baixado; ou
   - **Codex CLI** instalado, disponível ao executar `codex` no PowerShell, com provedor e autenticação corretamente configurados. *Apenas ter o app de desktop do Codex instalado não garante que o comando `codex` esteja disponível.*
 
-### Como instalar / atualizar
+### Correção para falha no Codex CLI
+
+Se a extensão exibir **“O Codex não conseguiu concluir a análise”**, atualize para a branch `main` (`git pull origin main`) e reinicie `backend/iniciar-windows.bat`. O hotfix elimina um argumento inválido no `codex exec` e passa a mostrar os detalhes do erro **somente no terminal local**, enquanto o popup apresenta um diagnóstico resumido.
+
+Confirme a configuração do Codex usando `codex --version` e `codex login status`. Caso outro erro persista, consulte as últimas linhas do terminal do backend, sem divulgar tokens nem dados de processos.
+
+## Como instalar / atualizar
 
 1. Se quiser Ollama, instale-o e baixe um modelo visual. Exemplo opcional:
 

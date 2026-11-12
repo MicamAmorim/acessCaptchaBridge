@@ -264,7 +264,7 @@ def codex_describe(image_b64: str, model: str, prompt: str, system_prompt: str) 
             lower = details.lower()
             if 'not valid utf-8' in lower or 'invalid utf-8' in lower:
                 hint = 'Codex rejeitou a codificação UTF-8. Atualize o backend e tente novamente.'
-            elf any(term in lower for term in ('unexpected argument', 'unrecognized option', 'unknown option')):
+            elif any(term in lower for term in ('unexpected argument', 'unrecognized option', 'unknown option')):
                 hint = 'O Codex CLI rejeitou um argumento. Confira a versão e a sintaxe do comando.'
             elif any(term in lower for term in ('authentication', 'unauthorized', 'login required', '401', 'api key')):
                 hint = 'O Codex indicou falha de autenticação; execute codex login status no terminal.'

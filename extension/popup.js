@@ -5,6 +5,47 @@ let lastScan = null;
 let lastDescription = '';
 let available = [];
 let isWorking = false;
+let captureGranted = false;
+let remoteGranted = false;
+let currentOrigin = '';
+let serverOnline = false;
+const CAPTURE_ORIGINS = ['<all_urls>'];
+const APPROVAL_KEY = 'codexSiteApprovals';
+
+async function readCurrentOrigin() {
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  try {
+    const address = new URL(tabs[0]?.url || '');
+    return ['https:', 'http:'].includes(address.protocol) ? address.origin : '';
+  } catch (_) { return ''; }
+}
+async function syncPermissions() {
+  captureGranted = await chrome.permissions.contains({ origins: CAPTURE_ORIGINS });
+  const origin = await readCurrentOrigin();
+  if (origin !== currentOrigin) {
+    currentOrigin = origin;
+    lastScan = null;
+    lastDescription = '';
+    $('scanResults').hidden = true;
+    $('modelResults').hidden = true;
+  }
+  const data = await chrome.storage.local.get(APPROVAL_KEY);
+  const approvals = data[APPROVAL_KEY] || {};
+  remoteGranted = Boolean(currentOrigin && approvals[currentOrigin]);
+  $('captureStatus').textContent = captureGranted
+    ? 'Acesso autorizado. A tela só é capturada ao escolher Analisar imagem.'
+    : 'Acesso não autorizado. O navegador pedirá autorização apenas uma vez.';
+  $('grantCapture').hidden = captureGranted;
+  $('revokeCapture').hidden = !captureGranted;
+  $('siteStatus').textContent = currentOrigin ? 'Guia atual: ' + currentOrigin : 'Abra uma página http ou https para analisar.';
+  $('remoteSite').textContent = currentOrigin
+    ? 'Site atual: ' + currentOrigin + '. ' + (remoteGranted ? 'Codex autorizado.' : 'Codex precisa de autorização uma vez neste site.')
+    : 'Abra um site para autorizar o Codex.';
+  $('grantCodex').hidden = remoteGranted;
+  $('grantCodex').disabled = !currentOrigin;
+  $('revokeCodex').hidden = !remoteGranted;
+  updateActions();
+}
 
 function message(text, isError = false) {
   $('message').textContent = text;
@@ -14,8 +55,9 @@ function updateActions() {
   const value = $('model').value;
   const chosen = available.find(m => `${m.provider}::${m.id}` === value);
   $('codexConsentRow').hidden = chosen?.provider !== 'codex';
-  $('analyze').disabled = isWorking || !chosen || !$('consent').checked ||
-    (chosen.provider === 'codex' && !$('codexConsent').checked);
+  $('scan').disabled = isWorking || !captureGranted;
+  $('analyze').disabled = isWorking || !chosen || !captureGranted ||
+    (chosen.provider === 'codex' && !remoteGranted);
 }
 function call(type, extra = {}) {
   return new Promise((resolve, reject) => chrome.runtime.sendMessage({ type, ...extra }, response => {
@@ -129,8 +171,7 @@ async function saveModel() {
   const chosen = available.find(m => `${m.provider}::${m.id}` === $('model').value);
   if (!chosen) return;
   await chrome.storage.local.set({ provider: chosen.provider, model: chosen.id });
-  $('codexConsent').checked = false; // Reconfirm when switching to remote-capable provider.
-  updateActions();
+  await syncPermissions();
 }
 async function init() {
   const saved = await chrome.storage.local.get(['token', 'provider', 'model']);

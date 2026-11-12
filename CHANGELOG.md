@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## v0.3.0 — painel lateral e permissões persistentes
+
+- Migração do popup para `chrome.sidePanel` com permanência durante navegação e atalho `Alt+Shift+A`.
+- Captura e inspeção somente sob comando do usuário, com autorização opcional persistente `<all_urls>` do navegador; revogação pelo próprio painel.
+- Consentimento Codex salvo por origem (site) para evitar confirmações repetidas, com revogação independente.
+- Seção de permissões recolhível e aberta apenas quando faltar acesso; mensagens de estado mais concisas para tecnologias assistivas.
+- Reconexão automática do painel quando o backend voltar, mantendo token e modelo.
+- Proteção adicional contra captura de guia diferente daquela inspecionada.
+- Quatro testes de regressão específicos da experiência de barra lateral; uso real com NVDA e Edge ainda requer validação.
+
 ## Hotfix — Codificação UTF-8 no Windows (main)
 
 - Codex CLI exige UTF-8 para o prompt recebido em `stdin`. O backend agora envia bytes de `instruction.encode('utf-8')`, sem depender da página de códigos padrão do Windows.

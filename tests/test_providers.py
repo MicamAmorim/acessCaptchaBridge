@@ -76,9 +76,9 @@ class CodexExecutionTests(unittest.TestCase):
             fake = Path(dirname, 'fake_codex_exec.py')
             fake.write_text('''import pathlib,sys
 args = sys.argv[1:]
-assert args[0] == 'exec'
+assert args[:3] == ['-c', 'approval_policy="never"', 'exec']
 assert '--sandbox' in args and args[args.index('--sandbox')+1] == 'read-only'
-assert '--ask-for-approval' in args and args[args.index('--ask-for-approval')+1] == 'never'
+assert '--ask-for-approval' not in args
 assert args[-1] == '-'
 assert 'não utilize comandos' in sys.stdin.read().lower()
 screenshot = pathlib.Path(args[args.index('--image')+1])
@@ -90,3 +90,16 @@ pathlib.Path(args[args.index('--output-last-message')+1]).write_text('Controle d
             with patch.object(providers, 'find_codex', return_value='/fake/codex'), patch.object(providers, '_codex_command', side_effect=lambda executable, *args: [sys.executable, str(fake), *args]):
                 response = providers.codex_describe(shot, model, 'Olhe controles.', 'Não compartilhe segredos.')
             self.assertEqual(response, 'Controle de áudio identificado.')
+
+    def test_codex_cli_error_is_actionable_without_exposing_raw_stderr(self):
+        import base64
+        with tempfile.TemporaryDirectory() as dirname:
+            fake = Path(dirname, 'failing_codex.py')
+            fake.write_text('''import sys
+sys.stderr.write("error: unexpected argument '--bad-flag' found\\n")
+sys.exit(2)
+''', encoding='utf-8')
+            shot = base64.b64encode(b'\xff\xd8\xff' + b'0' * 200).decode()
+            with patch.object(providers, 'find_codex', return_value='/fake/codex'), patch.object(providers, '_codex_command', side_effect=lambda executable, *args: [sys.executable, str(fake), *args]):
+                with self.assertRaisesRegex(RuntimeError, 'rejeitou um argumento'):
+                    providers.codex_describe(shot, 'vision-test', 'Descreva a imagem.', 'Proteja dados.')

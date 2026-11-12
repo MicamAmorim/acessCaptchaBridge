@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## Hotfix — Codex CLI 0.166.x (main)
+
+- Corrigida a chamada `codex exec`: a política de aprovação agora é aplicada pela opção global `-c approval_policy="never"`, evitando o argumento inválido `--ask-for-approval` no subcomando.
+- O diagnóstico do Codex agora é mostrado no terminal local, com uma mensagem resumida e sem o stderr bruto na extensão.
+- Teste de regressão para os argumentos e os erros do CLI.
+
 ## v0.2.0 — MVP de seleção dinâmica
 
 - Extensão Chrome/Edge Manifest V3.

@@ -233,18 +233,25 @@ async function init() {
     message('Diagnóstico concluído.');
   }));
   $('analyze').addEventListener('click', () => busy($('analyze'), async () => {
-    if (!$('consent').checked) throw new Error('Autorize a captura antes de prosseguir.');
+    await syncPermissions();
+    if (!captureGranted) throw new Error('Conceda primeiro o acesso persistente às páginas.');
     const selected = available.find(m => `${m.provider}::${m.id}` === $('model').value);
     if (!selected) throw new Error('Escolha um modelo detectado.');
-    if (selected.provider === 'codex' && !$('codexConsent').checked)
-      throw new Error('Confirme a autorização de processamento com Codex.');
+    const approvedOrigin = currentOrigin;
+    if (selected.provider === 'codex' && !remoteGranted)
+      throw new Error('Autorize o Codex uma vez neste site.');
     const shot = await call('CAPTURE');
+    // The side panel survives tab switching: check again before transmission.
+    await syncPermissions();
+    if (!captureGranted || currentOrigin !== approvedOrigin ||
+        (selected.provider === 'codex' && !remoteGranted))
+      throw new Error('A guia ou as permissões mudaram durante a captura. Repita a análise.');
     const data = await localFetch('/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         image: shot.image, scan: shot.scan, model: selected.id, provider: selected.provider,
-        confirmRemote: selected.provider === 'codex' && $('codexConsent').checked
+        confirmRemote: selected.provider === 'codex' && remoteGranted
       })
     });
     lastDescription = data.description || '';

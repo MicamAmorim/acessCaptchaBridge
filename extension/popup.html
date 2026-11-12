@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AcessoPonte</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><img src="icon128.png" width="30" height="30" alt=""><div><h1>AcessoPonte</h1><p>Assistente de acessibilidade local</p></div></div>
+  </header>
+  <main>
+    <p id="server" role="status" aria-live="polite">Verificando serviço local…</p>
+    <button id="scan" class="primary" type="button">Diagnosticar página</button>
+    <div id="scanResults" role="region" aria-label="Resultados do diagnóstico" tabindex="-1" hidden>
+      <h2>Alternativas encontradas</h2>
+      <p id="summary"></p>
+      <div id="controls"></div>
+      <p class="hint">Ao selecionar “Focar”, retorne à página e pressione Enter ou Espaço para ativar o controle. Alguns desafios estão em quadros isolados e não podem ser examinados diretamente.</p>
+    </div>
+    <hr>
+    <h2>Interpretação visual</h2>
+    <p class="hint">Os modelos são descobertos no computador. Ollama processa localmente; Codex CLI pode usar um serviço externo conforme sua configuração. Confira se há informações sigilosas na guia.</p>
+    <div id="modelChooser" hidden>
+      <label for="model">Modelo disponível</label>
+      <select id="model" aria-describedby="modelStatus"></select>
+    </div>
+    <p id="modelStatus" class="hint" role="status" aria-live="polite">Configure o token para consultar modelos.</p>
+    <button id="refreshModels" type="button">Atualizar modelos detectados</button>
+    <label id="codexConsentRow" class="consent" hidden><input type="checkbox" id="codexConsent"> Autorizo que o Codex processe esta captura, possivelmente na nuvem, conforme a configuração e a conta utilizadas.</label>
+    <label class="consent"><input type="checkbox" id="consent"> Autorizo capturar a guia visível nesta análise.</label>
+    <button id="analyze" type="button" disabled>Analisar imagem com VLM</button>
+    <div id="modelResults" role="region" aria-label="Descrição visual" hidden>
+      <h2>Descrição de acessibilidade</h2>
+      <p id="modelText" class="response"></p>
+      <button type="button" id="copy">Copiar descrição</button>
+    </div>
+    <hr>
+    <details>
+      <summary>Configurar conexão local</summary>
+      <label for="token">Token mostrado pelo servidor local</label>
+      <input id="token" type="password" spellcheck="false" autocomplete="off" placeholder="Cole o token gerado no PC">
+      <button id="save" type="button">Salvar configuração</button>
+      <p class="hint">O token permanece no armazenamento local da extensão. Ele não é enviado a sites visitados. A configuração do modelo é salva automaticamente ao selecionar.</p>
+    </details>
+    <p id="message" role="status" aria-live="assertive" tabindex="-1"></p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+:root { color-scheme: light; font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; }
+* { box-sizing: border-box; }
+body { min-width: 370px; max-width: 410px; width: 390px; margin: 0; background: #fbfcff; color: #111827; font-size: 15px; }
+header { background: #122238; color: white; padding: 14px 17px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+h1 { font-size: 20px; margin: 0; }
+header p { margin: 3px 0 0; color: #e0e6ef; font-size: 12px; }
+main { padding: 15px 18px 18px; }
+h2 { font-size: 16px; margin: 10px 0; }
+p { line-height: 1.45; }
+#server { padding: 9px 11px; background: #eef3f9; border-radius: 6px; font-size: 13px; }
+button { border: 2px solid #205b8c; background: white; color: #102b40; border-radius: 7px; font: inherit; font-weight: 650; padding: 9px 12px; margin: 8px 0; cursor: pointer; width: 100%; text-align: center; }
+button.primary { background: #114f80; color: white; }
+button:hover:not(:disabled) { background: #dfeefb; color: #102b40; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid #e28a13; outline-offset: 2px; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+hr { border: 0; border-top: 1px solid #d4dde8; margin: 17px 0; }
+label { display: block; font-size: 14px; font-weight: 600; margin-top: 12px; }
+label.consent { display: flex; gap: 9px; align-items: flex-start; line-height: 1.4; font-weight: 500; }
+input[type=checkbox] { width: 18px; height: 18px; accent-color: #114f80; flex: 0 0 auto; }
+input[type=text], input[type=password] { width: 100%; background: white; color: #111827; border: 1px solid #6b7280; border-radius: 5px; padding: 9px; margin-top: 5px; font-size: 14px; }
+.hint { color: #334155; font-size: 12px; line-height: 1.5; }
+.control { border: 1px solid #cbd5e1; border-radius: 7px; padding: 8px 10px; margin: 8px 0; }
+.control p { margin: 2px 0 3px; overflow-wrap: anywhere; }
+.control button { margin: 4px 0 0; padding: 7px; }
+.response { white-space: pre-wrap; background: #eef3f9; padding: 10px; border-radius: 6px; overflow-wrap: anywhere; }
+#message { font-weight: 600; }
+summary { cursor: pointer; font-weight: 700; padding: 5px 0; }
+select { width: 100%; padding: 9px; margin: 5px 0 7px; border: 1px solid #6b7280; background: #fff; color: #111827; border-radius: 6px; font: inherit; }
+select:focus-visible { outline: 3px solid #e28a13; outline-offset: 2px; }
+#modelStatus { margin: 5px 0; }
+#codexConsentRow { padding: 10px; border: 1px solid #b45309; border-radius: 6px; background: #fff9ec; }
+[hidden] { display: none !important; }

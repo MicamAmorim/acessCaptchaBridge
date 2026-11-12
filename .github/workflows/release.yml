@@ -1,0 +1,48 @@
+name: Publicar AcessoPonte v0.2.0
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'release-ready.txt'
+  workflow_dispatch:
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validar backend
+        run: python -m unittest discover -s tests -v
+      - name: Gerar pacote
+        shell: bash
+        run: |
+          mkdir -p dist
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED
+          root=Path('.')
+          includes=['README.md','backend','extension','demo','tests']
+          with ZipFile('dist/AcessoPonte-v0.2.0.zip','w',ZIP_DEFLATED,compresslevel=9) as archive:
+              for base in includes:
+                  p=root / base
+                  for file in ([p] if p.is_file() else sorted(p.rglob('*'))):
+                      if file.is_file() and '__pycache__' not in file.parts and file.suffix != '.pyc' and file.name != '.access_token':
+                          archive.write(file,Path('AcessoPonte-VLM') / file)
+          PY
+      - name: Publicar no GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh release view v0.2.0 >/dev/null 2>&1; then
+            gh release upload v0.2.0 dist/AcessoPonte-v0.2.0.zip --clobber
+          else
+            gh release create v0.2.0 dist/AcessoPonte-v0.2.0.zip --target "$GITHUB_SHA" --title "AcessoPonte v0.2.0 (MVP)" --notes "Extensão Chrome/Edge e backend Python para detecção de modelos visuais locais do Ollama e modelos disponíveis pelo Codex CLI. Ferramenta experimental de acessibilidade; não contorna CAPTCHAs. Testado com 16 casos automatizados; testes reais em Windows, NVDA e portais judiciais pendentes."
+          fi

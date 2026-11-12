@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>AcessoPonte</title>
+  <title>AcessoPonte — painel lateral</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -12,12 +12,13 @@
   </header>
   <main>
     <p id="server" role="status" aria-live="polite">Verificando serviço local…</p>
+    <p id="siteStatus" class="hint">Guia atual: aguardando identificação.</p>
     <button id="scan" class="primary" type="button">Diagnosticar página</button>
     <div id="scanResults" role="region" aria-label="Resultados do diagnóstico" tabindex="-1" hidden>
       <h2>Alternativas encontradas</h2>
       <p id="summary"></p>
       <div id="controls"></div>
-      <p class="hint">Ao selecionar “Focar”, retorne à página e pressione Enter ou Espaço para ativar o controle. Alguns desafios estão em quadros isolados e não podem ser examinados diretamente.</p>
+      <p class="hint">A barra lateral continua aberta quando você retorna à página. Ao selecionar “Focar”, retorne à página e pressione Enter ou Espaço para ativar o controle. Alguns desafios estão em quadros isolados e não podem ser examinados diretamente.</p>
     </div>
     <hr>
     <h2>Interpretação visual</h2>
@@ -28,8 +29,19 @@
     </div>
     <p id="modelStatus" class="hint" role="status" aria-live="polite">Configure o token para consultar modelos.</p>
     <button id="refreshModels" type="button">Atualizar modelos detectados</button>
-    <label id="codexConsentRow" class="consent" hidden><input type="checkbox" id="codexConsent"> Autorizo que o Codex processe esta captura, possivelmente na nuvem, conforme a configuração e a conta utilizadas.</label>
-    <label class="consent"><input type="checkbox" id="consent"> Autorizo capturar a guia visível nesta análise.</label>
+    <section id="permissions" aria-labelledby="permissionsHeading">
+      <h2 id="permissionsHeading">Permissões persistentes</h2>
+      <p class="hint">A autorização do navegador é concedida uma única vez para permitir a leitura e captura de páginas após mudar de guia ou reiniciar. Ela abrange sites visitados, mas o AcessoPonte só captura a tela quando você aciona “Analisar imagem”. Você pode revogar a qualquer momento.</p>
+      <p id="captureStatus" role="status" aria-live="polite">Verificando autorização do navegador…</p>
+      <button id="grantCapture" type="button">Conceder acesso persistente às páginas</button>
+      <button id="revokeCapture" type="button" hidden>Revogar acesso às páginas</button>
+      <div id="codexConsentRow" class="remote-permission" hidden>
+        <p id="remoteSite" class="hint"></p>
+        <p class="hint">O Codex pode enviar a captura ao provedor configurado, inclusive à nuvem. A autorização é lembrada apenas para este site e pode ser revogada.</p>
+        <button id="grantCodex" type="button">Autorizar Codex neste site</button>
+        <button id="revokeCodex" type="button" hidden>Revogar autorização do Codex neste site</button>
+      </div>
+    </section>
     <button id="analyze" type="button" disabled>Analisar imagem com VLM</button>
     <div id="modelResults" role="region" aria-label="Descrição visual" hidden>
       <h2>Descrição de acessibilidade</h2>
@@ -42,7 +54,7 @@
       <label for="token">Token mostrado pelo servidor local</label>
       <input id="token" type="password" spellcheck="false" autocomplete="off" placeholder="Cole o token gerado no PC">
       <button id="save" type="button">Salvar configuração</button>
-      <p class="hint">O token permanece no armazenamento local da extensão. Ele não é enviado a sites visitados. A configuração do modelo é salva automaticamente ao selecionar.</p>
+      <p class="hint">O token fica no armazenamento local da extensão e não é enviado a sites visitados. A seleção do modelo e as autorizações permanecem após reiniciar o servidor; revogue-as na seção Permissões persistentes.</p>
     </details>
     <p id="message" role="status" aria-live="assertive" tabindex="-1"></p>
   </main>

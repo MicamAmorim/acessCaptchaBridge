@@ -33,9 +33,10 @@ async function syncPermissions() {
   const data = await chrome.storage.local.get(APPROVAL_KEY);
   const approvals = data[APPROVAL_KEY] || {};
   remoteGranted = Boolean(currentOrigin && approvals[currentOrigin]);
-  $('captureStatus').textContent = captureGranted
+  const captureMessage = captureGranted
     ? 'Acesso autorizado. A tela só é capturada ao escolher Analisar imagem.'
     : 'Acesso não autorizado. O navegador pedirá autorização apenas uma vez.';
+  if ($('captureStatus').textContent !== captureMessage) $('captureStatus').textContent = captureMessage;
   $('grantCapture').hidden = captureGranted;
   $('revokeCapture').hidden = !captureGranted;
   $('siteStatus').textContent = currentOrigin ? 'Guia atual: ' + currentOrigin : 'Abra uma página http ou https para analisar.';
@@ -180,6 +181,7 @@ async function saveModel() {
   if (!chosen) return;
   await chrome.storage.local.set({ provider: chosen.provider, model: chosen.id });
   await syncPermissions();
+  if (captureGranted && (chosen.provider !== 'codex' || remoteGranted)) $('permissions').open = false;
 }
 async function init() {
   const saved = await chrome.storage.local.get(['token', 'provider', 'model']);
@@ -283,7 +285,9 @@ async function init() {
   async function checkServer() {
     try {
       await call('HEALTH');
-      $('server').textContent = 'Servidor local conectado.';
+      if ($('server').textContent !== 'Servidor local conectado.') {
+        $('server').textContent = 'Servidor local conectado.';
+      }
       if (!serverOnline && $('token').value.trim().length >= 20) {
         serverOnline = true;
         await refreshModels();
@@ -298,7 +302,8 @@ async function init() {
         $('modelStatus').textContent = 'Servidor offline. As autorizações continuam salvas.';
         updateActions();
       }
-      $('server').textContent = 'Servidor offline. Reinicie backend/iniciar-windows.bat; este painel permanecerá aberto.';
+      const offlineMessage = 'Servidor offline. Reinicie backend/iniciar-windows.bat; este painel permanecerá aberto.';
+      if ($('server').textContent !== offlineMessage) $('server').textContent = offlineMessage;
     }
   }
   await checkServer();

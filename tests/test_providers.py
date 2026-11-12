@@ -96,10 +96,8 @@ pathlib.Path(args[args.index('--output-last-message')+1]).write_text('Controle d
 
     def test_codex_prompt_is_utf8_encoded_bytes_on_any_windows_codepage(self):
         import base64
-        shot = base64.b64encode(b'\\xff\\xd8\\xff' + b'0' * 200).decode()
-        with patch.object(providers, 'find_codex', return_value='/fake/codex'), \\
-             patch.object(providers, '_codex_command', return_value=['fake-codex']), \\
-             patch.object(providers.subprocess, 'run') as run:
+        shot = base64.b64encode(bytes.fromhex('ffd8ff') + b'0' * 200).decode()
+        with patch.object(providers, 'find_codex', return_value='/fake/codex'), patch.object(providers, '_codex_command', return_value=['fake-codex']), patch.object(providers.subprocess, 'run') as run:
             run.return_value.returncode = 1
             run.return_value.stderr = b'Error'
             with self.assertRaisesRegex(RuntimeError, 'Consulte a mensagem'):

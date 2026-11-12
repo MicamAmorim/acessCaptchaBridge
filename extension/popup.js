@@ -185,8 +185,49 @@ async function init() {
   }));
   $('model').addEventListener('change', () => { saveModel().catch(error => message(error.message, true)); });
   $('refreshModels').addEventListener('click', () => busy($('refreshModels'), async () => { await refreshModels(); }));
-  $('consent').addEventListener('change', updateActions);
-  $('codexConsent').addEventListener('change', updateActions);
+  // One explicit browser permission request, persisted and revocable.
+  $('grantCapture').addEventListener('click', () => {
+    $('grantCapture').disabled = true;
+    chrome.permissions.request({ origins: CAPTURE_ORIGINS })
+      .then(async granted => {
+        await syncPermissions();
+        message(granted
+          ? 'Acesso persistente autorizado. Nenhuma captura será feita automaticamente.'
+          : 'Permissão recusada. Nenhuma imagem será capturada.', !granted);
+      })
+      .catch(error => message('Falha na autorização: ' + error.message, true))
+      .finally(() => { $('grantCapture').disabled = false; });
+  });
+  $('revokeCapture').addEventListener('click', () => busy($('revokeCapture'), async () => {
+    await chrome.permissions.remove({ origins: CAPTURE_ORIGINS });
+    await chrome.storage.local.remove(APPROVAL_KEY);
+    await syncPermissions();
+    message('Acesso e permissões Codex revogados.');
+  }));
+  $('grantCodex').addEventListener('click', () => busy($('grantCodex'), async () => {
+    const origin = await readCurrentOrigin();
+    if (!origin || !captureGranted) throw new Error('Abra o site e autorize o acesso às páginas.');
+    const saved = await chrome.storage.local.get(APPROVAL_KEY);
+    const approvals = saved[APPROVAL_KEY] || {};
+    approvals[origin] = true;
+    await chrome.storage.local.set({ [APPROVAL_KEY]: approvals });
+    await syncPermissions();
+    message('Codex autorizado neste site. A análise só ocorre quando você solicitar.');
+  }));
+  $('revokeCodex').addEventListener('click', () => busy($('revokeCodex'), async () => {
+    const saved = await chrome.storage.local.get(APPROVAL_KEY);
+    const approvals = saved[APPROVAL_KEY] || {};
+    if (currentOrigin) delete approvals[currentOrigin];
+    await chrome.storage.local.set({ [APPROVAL_KEY]: approvals });
+    await syncPermissions();
+    message('Autorização Codex revogada para este site.');
+  }));
+  chrome.permissions.onAdded.addListener(() => { syncPermissions().catch(() => {}); });
+  chrome.permissions.onRemoved.addListener(() => { syncPermissions().catch(() => {}); });
+  chrome.tabs.onActivated.addListener(() => { syncPermissions().catch(() => {}); });
+  chrome.tabs.onUpdated.addListener((_tabId, change) => {
+    if (change.url) syncPermissions().catch(() => {});
+  });
   $('scan').addEventListener('click', () => busy($('scan'), async () => {
     renderScan(await call('SCAN'));
     message('Diagnóstico concluído.');

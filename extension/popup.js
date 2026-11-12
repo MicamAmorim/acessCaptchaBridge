@@ -264,11 +264,32 @@ async function init() {
     try { await navigator.clipboard.writeText(lastDescription); message('Descrição copiada.'); }
     catch (_) { message('Não foi possível copiar a descrição.', true); }
   });
+  await syncPermissions();
   updateActions();
-  try {
-    await call('HEALTH');
-    $('server').textContent = 'Servidor local conectado.';
-    if ($('token').value.trim().length >= 20) await refreshModels(saved);
-  } catch (_) { $('server').textContent = 'Serviço local indisponível. Execute backend/iniciar-windows.bat.'; }
+  // A side panel survives backend restarts; recover automatically and keep
+  // browser permissions/consent in local extension storage.
+  async function checkServer() {
+    try {
+      await call('HEALTH');
+      $('server').textContent = 'Servidor local conectado.';
+      if (!serverOnline && $('token').value.trim().length >= 20) {
+        serverOnline = true;
+        await refreshModels();
+      } else {
+        serverOnline = true;
+      }
+    } catch (_) {
+      if (serverOnline) {
+        serverOnline = false;
+        available = [];
+        $('modelChooser').hidden = true;
+        $('modelStatus').textContent = 'Servidor offline. As autorizações continuam salvas.';
+        updateActions();
+      }
+      $('server').textContent = 'Servidor offline. Reinicie backend/iniciar-windows.bat; este painel permanecerá aberto.';
+    }
+  }
+  await checkServer();
+  setInterval(() => { checkServer().catch(() => {}); }, 12000);
 }
 init().catch(error => message(error.message, true));

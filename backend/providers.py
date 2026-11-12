@@ -235,23 +235,41 @@ def codex_describe(image_b64: str, model: str, prompt: str, system_prompt: str) 
             'Somente descreva. Não utilize comandos, arquivos adicionais, plugins, '
             'ferramentas, navegação web ou alterações de configuração.'
         )
+        # codex exec rejects --ask-for-approval as a subcommand option.
+        # Use the documented global config override to disable prompts.
         args = _codex_command(
-            executable, 'exec', '--ephemeral', '--skip-git-repo-check',
-            '--sandbox', 'read-only', '--ask-for-approval', 'never',
+            executable, '-c', 'approval_policy="never"',
+            'exec', '--ephemeral', '--skip-git-repo-check',
+            '--sandbox', 'read-only',
             '--model', model,
             '--image', str(screenshot), '--output-last-message', str(result_file), '-',
         )
         try:
             outcome = subprocess.run(
                 args, cwd=directory, input=instruction, text=True,
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
                 timeout=CODEX_TIMEOUT, check=False,
                 creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
             )
         except subprocess.TimeoutExpired:
             raise TimeoutError('Codex excedeu o tempo de 140 segundos.') from None
         if outcome.returncode:
-            raise RuntimeError('O Codex não conseguiu concluir a análise. Verifique a autenticação e o modelo no terminal.')
+            # Keep raw CLI logs local: they can contain file paths or
+            # user-specific data and should not be sent to the browser.
+            details = (outcome.stderr or '').strip()
+            if details:
+                print('[AcessoPonte] Falha Codex CLI (stderr, últimos 1200 caracteres):\n'
+                      + details[-1200:], flush=True)
+            lower = details.lower()
+            if any(term in lower for term in ('unexpected argument', 'unrecognized option', 'unknown option')):
+                hint = 'O Codex CLI rejeitou um argumento. Confira a versão e a sintaxe do comando.'
+            elif any(term in lower for term in ('authentication', 'unauthorized', 'login required', '401', 'api key')):
+                hint = 'O Codex indicou falha de autenticação; execute codex login status no terminal.'
+            elif any(term in lower for term in ('model not found', 'unsupported model', 'model does not exist')):
+                hint = 'O modelo selecionado não está disponível para esse provedor Codex.'
+            else:
+                hint = 'Consulte a mensagem de erro no terminal onde o servidor AcessoPonte está aberto.'
+            raise RuntimeError(f'Codex retornou código {outcome.returncode}. {hint}')
         try:
             description = result_file.read_text('utf-8').strip()
         except OSError:

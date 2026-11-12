@@ -1,8 +1,34 @@
-# AcessoPonte — extensão de acessibilidade com seletor de modelos (v0.2.0)
+# AcessoPonte — barra lateral de acessibilidade com VLM local/Codex (v0.3.0)
 
 Extensão Chrome/Edge Manifest V3 + ponte Python para análise visual de interfaces, com seleção dinâmica dos modelos visuais que **estão instalados no Ollama** e dos modelos visuais **anunciados pelo Codex CLI instalado e configurado no PC**.
 
 **Escopo:** identificar recursos oficiais de áudio, acessibilidade, suporte e navegação por teclado. O projeto não responde CAPTCHAs, não automatiza verificações de segurança nem simula atividade humana.
+
+## O que mudou na v0.3: acessibilidade contínua
+
+- A interface agora abre como **barra lateral persistente** no Chrome/Edge. Clicar de volta na página não encerra a análise.
+- Atalho sugerido **Alt+Shift+A** para abrir/fechar o painel (customizável em `edge://extensions/shortcuts` ou `chrome://extensions/shortcuts`).
+- **Permissão única e revogável** do navegador para leitura/captura de páginas. Ela solicita `<all_urls>` opcionalmente porque `chrome.tabs.captureVisibleTab` exige `activeTab` ou `<all_urls>`; conceder a permissão mantém a captura utilizável após trocar de guia ou reiniciar o navegador. A extensão **não monitora páginas nem captura imagens automaticamente**.
+- O **Codex** pede autorização **uma vez por origem (site)** antes de enviar uma captura a um provedor potencialmente remoto. A autorização é salva localmente e tem botão próprio de revogação.
+- Depois da configuração, os controles de permissão ficam recolhidos para reduzir a navegação repetitiva com NVDA e teclado; reabrem automaticamente se faltar alguma autorização.
+- O token e a escolha de modelo continuam salvos no navegador. Se o backend parar, a barra lateral permanece aberta e tenta reconectar aproximadamente a cada 12 segundos.
+- Cada nova captura/análise continua exigindo o comando deliberado **Analisar imagem com VLM**. O escopo permanece limitado a identificar alternativas oficiais de acessibilidade, não resolver CAPTCHAs.
+
+### Atualização a partir da v0.2
+
+No PowerShell, encerre o backend com `Ctrl+C` e execute:
+
+```powershell
+cd "C:\Users\Windows 11\Documents\CAPTCHA\acessCaptchaBridge"
+git switch main
+git pull --ff-only origin main
+py -m unittest discover -s tests -v
+.\backend\iniciar-windows.bat
+```
+
+No Edge abra `edge://extensions` e clique em **Atualizar** no cartão do AcessoPonte. Reabra a extensão pelo ícone ou `Alt+Shift+A`; ela surgirá na barra lateral. Clique uma vez em **Conceder acesso persistente às páginas**, examine a permissão abrangente pedida pelo navegador e conceda se concordar. Para usar Codex, selecione o modelo e conceda uma vez a autorização daquele site. As autorizações continuam após reiniciar o backend e podem ser revogadas em **Permissões e privacidade**.
+
+**Segurança:** A permissão `<all_urls>` é ampla e opcional; ela deve ser entendida antes de conceder. Ela concede ao navegador o acesso da extensão às páginas, mas o código só executa leitura e captura em resposta a comandos do usuário. Para sites com sigilo processual, prefira Ollama local e avalie as políticas de tratamento de dados antes de usar Codex remoto.
 
 ## O que mudou na v0.2
 
@@ -51,9 +77,9 @@ Confirme a configuração do Codex usando `codex --version` e `codex login statu
 
 3. Execute `backend/iniciar-windows.bat`. Mantenha a janela aberta e copie o **token** apresentado. O token persistente fica no arquivo `backend/.access_token`, que não deve ser compartilhado.
 
-4. Chrome: `chrome://extensions`, habilite o modo do desenvolvedor e clique em **Carregar sem compactação**, escolhendo **a pasta `extension` deste pacote**. No Edge: `edge://extensions`. Se já estiver usando a versão anterior, substitua os arquivos da pasta usada anteriormente e clique em **Atualizar** no cartão da extensão.
+4. Chrome: `chrome://extensions`, habilite o modo do desenvolvedor e clique em **Carregar sem compactação**, escolhendo **a pasta `extension` deste pacote**. No Edge: `edge://extensions`. Em atualizações, clique em **Atualizar** no cartão da extensão. A partir da v0.3, o ícone abre a barra lateral.
 
-5. Abra o popup do AcessoPonte, expanda **Configurar conexão local**, cole o token e clique em **Salvar configuração**.
+5. Abra a barra lateral do AcessoPonte, expanda **Configurar conexão local**, cole o token e clique em **Salvar configuração**. Conceda o acesso persistente uma única vez em **Permissões e privacidade**.
 
 6. A lista será consultada automaticamente. O seletor mostrará **somente grupos detectados**, sem precisar digitar o nome de um modelo. Ao instalar/remover um modelo ou iniciar o Ollama, use **Atualizar modelos detectados**.
 
@@ -90,7 +116,7 @@ Confirme a configuração do Codex usando `codex --version` e `codex login statu
 - A ponte escuta apenas `127.0.0.1:8765` e as rotas sensíveis exigem um token Bearer. Não exponha essa porta à rede externa.
 - A lista do Codex mostra o catálogo do app-server configurado. Acesso efetivo ao modelo, limites de conta e suporte real a imagem só podem ser verificados ao executar uma requisição.
 - O navegador não permite inspecionar todos os iframes de terceiros com `activeTab` e não expõe toda a árvore de acessibilidade diretamente. O VLM pode errar. O protótipo ainda não foi validado com usuários cegos e NVDA em portais judiciais reais.
-- O popup precisa permanecer aberto durante a análise. Não há observação automática de páginas em segundo plano.
+- A barra lateral permanece aberta durante a análise e ao alternar o foco para a página. Não há observação automática de páginas em segundo plano.
 
 ## Testes automatizados
 

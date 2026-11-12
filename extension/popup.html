@@ -11,6 +11,7 @@
     <div class="brand"><img src="icon128.png" width="30" height="30" alt=""><div><h1>AcessoPonte</h1><p>Assistente de acessibilidade local</p></div></div>
   </header>
   <main>
+    <p class="hint">Acesso rápido: use o ícone da extensão ou o atalho configurado no navegador. A barra lateral não fecha quando você interage com a página.</p>
     <p id="server" role="status" aria-live="polite">Verificando serviço local…</p>
     <p id="siteStatus" class="hint">Guia atual: aguardando identificação.</p>
     <button id="scan" class="primary" type="button">Diagnosticar página</button>
@@ -29,8 +30,8 @@
     </div>
     <p id="modelStatus" class="hint" role="status" aria-live="polite">Configure o token para consultar modelos.</p>
     <button id="refreshModels" type="button">Atualizar modelos detectados</button>
-    <section id="permissions" aria-labelledby="permissionsHeading">
-      <h2 id="permissionsHeading">Permissões persistentes</h2>
+    <details id="permissions" open>
+      <summary id="permissionsHeading">Permissões e privacidade</summary>
       <p class="hint">A autorização do navegador é concedida uma única vez para permitir a leitura e captura de páginas após mudar de guia ou reiniciar. Ela abrange sites visitados, mas o AcessoPonte só captura a tela quando você aciona “Analisar imagem”. Você pode revogar a qualquer momento.</p>
       <p id="captureStatus" role="status" aria-live="polite">Verificando autorização do navegador…</p>
       <button id="grantCapture" type="button">Conceder acesso persistente às páginas</button>
@@ -41,7 +42,7 @@
         <button id="grantCodex" type="button">Autorizar Codex neste site</button>
         <button id="revokeCodex" type="button" hidden>Revogar autorização do Codex neste site</button>
       </div>
-    </section>
+    </details>
     <button id="analyze" type="button" disabled>Analisar imagem com VLM</button>
     <div id="modelResults" role="region" aria-label="Descrição visual" hidden>
       <h2>Descrição de acessibilidade</h2>

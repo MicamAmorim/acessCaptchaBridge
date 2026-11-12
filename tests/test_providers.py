@@ -80,7 +80,10 @@ assert args[:3] == ['-c', 'approval_policy="never"', 'exec']
 assert '--sandbox' in args and args[args.index('--sandbox')+1] == 'read-only'
 assert '--ask-for-approval' not in args
 assert args[-1] == '-'
-assert 'não utilize comandos' in sys.stdin.read().lower()
+prompt_bytes = sys.stdin.buffer.read()
+assert isinstance(prompt_bytes, bytes)
+assert 'Não compartilhe segredos.' in prompt_bytes.decode('utf-8', errors='strict')
+assert 'não utilize comandos' in prompt_bytes.decode('utf-8', errors='strict').lower()
 screenshot = pathlib.Path(args[args.index('--image')+1])
 assert screenshot.is_file() and screenshot.read_bytes().startswith(b'\\xff\\xd8\\xff')
 pathlib.Path(args[args.index('--output-last-message')+1]).write_text('Controle de áudio identificado.', encoding='utf-8')
@@ -90,6 +93,21 @@ pathlib.Path(args[args.index('--output-last-message')+1]).write_text('Controle d
             with patch.object(providers, 'find_codex', return_value='/fake/codex'), patch.object(providers, '_codex_command', side_effect=lambda executable, *args: [sys.executable, str(fake), *args]):
                 response = providers.codex_describe(shot, model, 'Olhe controles.', 'Não compartilhe segredos.')
             self.assertEqual(response, 'Controle de áudio identificado.')
+
+    def test_codex_prompt_is_utf8_encoded_bytes_on_any_windows_codepage(self):
+        import base64
+        shot = base64.b64encode(b'\\xff\\xd8\\xff' + b'0' * 200).decode()
+        with patch.object(providers, 'find_codex', return_value='/fake/codex'), \\
+             patch.object(providers, '_codex_command', return_value=['fake-codex']), \\
+             patch.object(providers.subprocess, 'run') as run:
+            run.return_value.returncode = 1
+            run.return_value.stderr = b'Error'
+            with self.assertRaisesRegex(RuntimeError, 'Consulte a mensagem'):
+                providers.codex_describe(shot, 'vision-test', 'Áudio e navegação', 'Não envie conteúdo.')
+            supplied = run.call_args.kwargs['input']
+            self.assertIsInstance(supplied, bytes)
+            self.assertIn('Áudio e navegação'.encode('utf-8'), supplied)
+            self.assertIn('Não envie conteúdo.'.encode('utf-8'), supplied)
 
     def test_codex_cli_error_is_actionable_without_exposing_raw_stderr(self):
         import base64

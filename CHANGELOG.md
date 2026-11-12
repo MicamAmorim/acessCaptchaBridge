@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## Hotfix — Codificação UTF-8 no Windows (main)
+
+- Codex CLI exige UTF-8 para o prompt recebido em `stdin`. O backend agora envia bytes de `instruction.encode('utf-8')`, sem depender da página de códigos padrão do Windows.
+- Saída de erro capturada como bytes e decodificada explicitamente em UTF-8 (com substituição de caracteres inválidos).
+- Novo teste verifica a passagem de bytes UTF-8 com caracteres acentuados em português.
+- Atualize com `git pull --ff-only origin main` e reinicie o servidor local. Não é necessário reinstalar a extensão.
+
 ## Hotfix — Codex CLI 0.166.x (main)
 
 - Corrigida a chamada `codex exec`: a política de aprovação agora é aplicada pela opção global `-c approval_policy="never"`, evitando o argumento inválido `--ask-for-approval` no subcomando.
